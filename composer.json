@@ -1,0 +1,21 @@
+{
+    "name": "jmoraaestt/ginga",
+    "description": "Componentes Blade com Bootstrap 5 feitos para aplicações brasileiras",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        { "name": "Julia Toledo" }
+    ],
+    "autoload": {
+        "psr-4": { "Ginga\\": "src/" }
+    },
+    "require": {
+        "php": "^8.2",
+        "illuminate/support": "^11.0|^12.0"
+    },
+    "extra": {
+        "laravel": {
+            "providers": ["Ginga\\GingaServiceProvider"]
+        }
+    }
+}
