@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="pt-BR" data-bs-theme="light">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Ginga · Botões</title>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <!-- Tema do Ginga: sempre depois do Bootstrap -->
+    <link rel="stylesheet" href="../resources/css/ginga-theme.css">
+
+    <style>
+        .swatch {
+            width: 100%;
+            height: 3rem;
+            border-radius: var(--bs-border-radius);
+            border: 1px solid var(--bs-border-color);
+        }
+        .estados th { font-weight: 500; color: var(--bs-secondary-color); white-space: nowrap; }
+        .estados td { vertical-align: middle; }
+    </style>
+</head>
+<body>
+<div class="container py-5">
+
+    <header class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-5">
+        <div>
+            <h1 class="h3 mb-1">Ginga · Botões</h1>
+            <p class="mb-0 text-body-secondary">Marcação igual à gerada por <code>&lt;x-ginga::button&gt;</code>.</p>
+        </div>
+        <button class="btn btn-outline-primary" type="button" id="alternar-tema">
+            <i class="bi bi-moon-stars" aria-hidden="true"></i>
+            <span>Tema escuro</span>
+        </button>
+    </header>
+
+    <!-- Paleta -->
+    <section class="mb-5">
+        <h2 class="h5 mb-3">Paleta</h2>
+        <div class="row row-cols-3 row-cols-md-6 g-3">
+            <div class="col"><div class="swatch" style="background: var(--ginga-rosa)"></div><small>rosa</small></div>
+            <div class="col"><div class="swatch" style="background: var(--ginga-rosa-hover)"></div><small>rosa-hover</small></div>
+            <div class="col"><div class="swatch" style="background: var(--ginga-rosa-active)"></div><small>rosa-active</small></div>
+            <div class="col"><div class="swatch" style="background: var(--ginga-rosa-vivo)"></div><small>rosa-vivo</small></div>
+            <div class="col"><div class="swatch" style="background: var(--ginga-rosa-claro)"></div><small>rosa-claro</small></div>
+            <div class="col"><div class="swatch" style="background: var(--ginga-verde-agua)"></div><small>verde-agua</small></div>
+            <div class="col"><div class="swatch" style="background: var(--ginga-ambar)"></div><small>ambar</small></div>
+            <div class="col"><div class="swatch" style="background: var(--ginga-perigo)"></div><small>perigo</small></div>
+            <div class="col"><div class="swatch" style="background: var(--ginga-tinta)"></div><small>tinta</small></div>
+            <div class="col"><div class="swatch" style="background: var(--ginga-tinta-suave)"></div><small>tinta-suave</small></div>
+            <div class="col"><div class="swatch" style="background: var(--ginga-borda)"></div><small>borda</small></div>
+            <div class="col"><div class="swatch" style="background: var(--ginga-superficie-alta)"></div><small>superficie-alta</small></div>
+        </div>
+    </section>
+
+    <!-- Variantes x estados -->
+    <section class="mb-5">
+        <h2 class="h5 mb-1">Variantes e estados</h2>
+        <p class="text-body-secondary small">Passe o mouse e clique para ver hover, active e foco reais. A coluna "Active" força o estado com a classe <code>active</code>.</p>
+        <div class="card">
+            <div class="card-body table-responsive">
+                <table class="table table-borderless estados mb-0">
+                    <thead>
+                    <tr>
+                        <th scope="col">variant</th>
+                        <th scope="col">Normal</th>
+                        <th scope="col">Active</th>
+                        <th scope="col">Desabilitado</th>
+                        <th scope="col">Carregando</th>
+                    </tr>
+                    </thead>
+                    <tbody id="variantes"></tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <!-- Tamanhos -->
+    <section class="mb-5">
+        <h2 class="h5 mb-3">Tamanhos (<code>size</code>)</h2>
+        <div class="d-flex flex-wrap align-items-center gap-2">
+            <button class="btn btn-primary btn-sm" type="button">Pequeno</button>
+            <button class="btn btn-primary" type="button">Padrão</button>
+            <button class="btn btn-primary btn-lg" type="button">Grande</button>
+        </div>
+    </section>
+
+    <!-- Pill e block -->
+    <section class="mb-5">
+        <h2 class="h5 mb-3"><code>pill</code> e <code>block</code></h2>
+        <div class="d-flex flex-wrap gap-2 mb-3">
+            <button class="btn btn-primary rounded-pill" type="button">Assinar</button>
+            <button class="btn btn-outline-primary rounded-pill" type="button">Saiba mais</button>
+            <button class="btn btn-success rounded-pill" type="button">Confirmar</button>
+        </div>
+        <div style="max-width: 24rem">
+            <button class="btn btn-primary w-100" type="button">Continuar</button>
+        </div>
+    </section>
+
+    <!-- Links -->
+    <section class="mb-5">
+        <h2 class="h5 mb-3">Links (<code>href</code>)</h2>
+        <div class="d-flex flex-wrap gap-2">
+            <a class="btn btn-primary" href="#" role="button">Novo cliente</a>
+            <a class="btn btn-outline-primary disabled" href="#" role="button" aria-disabled="true" tabindex="-1">Baixar relatório</a>
+            <a class="btn btn-primary disabled" href="#" role="button" aria-disabled="true" tabindex="-1" aria-busy="true">
+                <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+                <span class="visually-hidden" role="status">Carregando...</span>
+                Gerando
+            </a>
+        </div>
+    </section>
+
+    <!-- Ícones -->
+    <section class="mb-5">
+        <h2 class="h5 mb-3">Ícones (<code>iconLeft</code> / <code>iconRight</code>)</h2>
+        <div class="d-flex flex-wrap gap-2">
+            <button class="btn btn-primary" type="button">
+                <i class="bi bi-plus-lg" aria-hidden="true"></i>
+                Adicionar
+            </button>
+            <a class="btn btn-outline-primary" href="#" role="button">
+                Próximo
+                <i class="bi bi-arrow-right" aria-hidden="true"></i>
+            </a>
+            <button class="btn btn-danger" type="button">
+                <i class="bi bi-trash" aria-hidden="true"></i>
+                Excluir
+            </button>
+            <button class="btn btn-warning" type="button">
+                <i class="bi bi-exclamation-triangle" aria-hidden="true"></i>
+                Revisar
+            </button>
+        </div>
+    </section>
+
+    <!-- Contexto -->
+    <section class="mb-5">
+        <h2 class="h5 mb-3">Em contexto</h2>
+        <div class="row g-3">
+            <div class="col-md-6">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h3 class="h6">Formulário</h3>
+                        <div class="mb-3">
+                            <label class="form-label" for="nome">Nome</label>
+                            <input class="form-control" id="nome" placeholder="Digite o nome">
+                        </div>
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="aceite" checked>
+                            <label class="form-check-label" for="aceite">Aceito os termos</label>
+                        </div>
+                        <div class="d-flex gap-2 justify-content-end">
+                            <button class="btn btn-link" type="button">Cancelar</button>
+                            <button class="btn btn-primary" type="submit">Salvar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h3 class="h6">Alerta e badge</h3>
+                        <div class="alert alert-primary">Fundo suave com <code>rosa-claro</code>.</div>
+                        <span class="badge text-bg-primary">Novo</span>
+                        <span class="badge bg-primary-subtle text-primary-emphasis">Suave</span>
+                        <p class="mt-3 mb-0">Texto com <a href="#">um link</a> no meio.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+</div>
+
+<script>
+    // Monta a tabela de variantes com a mesma marcação do componente
+    const variantes = [
+        'primary', 'outline-primary', 'success', 'danger', 'warning',
+        'secondary', 'outline-secondary', 'link',
+    ];
+
+    const spinner =
+        '<span class="spinner-border spinner-border-sm" aria-hidden="true"></span>' +
+        '<span class="visually-hidden" role="status">Carregando...</span>';
+
+    document.getElementById('variantes').innerHTML = variantes.map((v) => `
+        <tr>
+            <th scope="row"><code>${v}</code></th>
+            <td><button class="btn btn-${v}" type="button">Salvar</button></td>
+            <td><button class="btn btn-${v} active" type="button">Salvar</button></td>
+            <td><button class="btn btn-${v}" type="button" disabled>Salvar</button></td>
+            <td><button class="btn btn-${v}" type="button" disabled aria-busy="true">${spinner} Salvar</button></td>
+        </tr>
+    `).join('');
+
+    // Alterna entre tema claro e escuro
+    const html = document.documentElement;
+    const botaoTema = document.getElementById('alternar-tema');
+
+    botaoTema.addEventListener('click', () => {
+        const escuro = html.getAttribute('data-bs-theme') !== 'dark';
+        html.setAttribute('data-bs-theme', escuro ? 'dark' : 'light');
+        botaoTema.querySelector('i').className = escuro ? 'bi bi-sun' : 'bi bi-moon-stars';
+        botaoTema.querySelector('span').textContent = escuro ? 'Tema claro' : 'Tema escuro';
+    });
+</script>
+</body>
+</html>
