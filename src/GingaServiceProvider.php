@@ -7,7 +7,7 @@ use Illuminate\Support\ServiceProvider;
 
 class GingaServiceProvider extends ServiceProvider 
 {
-    public function boot(): variant_mod{
+    public function boot(): void{
         Blade::anonymousComponentPath(__DIR__ . '/../resources/views/components', 'ginga');
     }
 }
