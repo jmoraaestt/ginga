@@ -218,3 +218,13 @@ describe('layout', function () {
             ->toBe("529.982.247-25 | R$\u{00A0}49,90 | (11) 3456-7890 | []");
     });
 });
+
+describe('galeria', function () {
+    it('mostra todos os componentes em ambiente local', function () {
+        $this->get('/_ginga')
+            ->assertOk()
+            ->assertSee('Ginga · Galeria')
+            ->assertSee('Campos brasileiros')
+            ->assertSee('529.982.247-25');
+    });
+});

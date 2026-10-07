@@ -12,6 +12,13 @@ abstract class TestCase extends BaseTestCase
         return [GingaServiceProvider::class];
     }
 
+    protected function defineEnvironment($app): void
+    {
+        // A galeria só é registrada em ambiente local; nos testes, liga pela config
+        $app['config']->set('ginga.galeria', true);
+        $app['config']->set('app.key', 'base64:' . base64_encode(str_repeat('a', 32)));
+    }
+
     /**
      * Simula a volta de um formulário com erro: valores antigos no old() e mensagens em $errors.
      */

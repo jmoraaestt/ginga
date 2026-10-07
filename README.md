@@ -81,6 +81,67 @@ window.bootstrap = bootstrap;
 | Brasil | [`cpf`, `cnpj`, `cpf-cnpj`, `telefone`, `dinheiro`, `cep`, `uf`](#campos-brasileiros), [diretivas `@cpf`, `@dinheiro`...](#exibindo-valores-formatados) |
 | Listagens | [`datatable`](#datatable), [`table`](#table), [`pagination`](#pagination), [`badge`](#badge) |
 | Estrutura | [`card`](#card), [`breadcrumb`](#breadcrumb) |
+| Ver e personalizar | [Galeria](#galeria), [Tema e cores](#tema-e-cores) |
+
+## Galeria
+
+Para ver todos os componentes com o design do Ginga (botões, campos, máscaras, tabelas, modal, toasts, tema claro e escuro) sem montar nenhuma tela, abra a galeria na sua aplicação:
+
+```
+http://localhost:8000/_ginga
+```
+
+Cada exemplo aparece renderizado de verdade, com o código Blade que o gera em "Ver código". Os campos brasileiros funcionam: digite um CPF para ver a máscara, ou o CEP `01310-100` para ver o endereço ser preenchido. Os exemplos com erro mostram como o campo fica depois de uma validação que falhou.
+
+A galeria só é registrada em ambiente **local** (`APP_ENV=local`). Para ligar ou desligar à força, crie `config/ginga.php`:
+
+```php
+<?php
+
+return [
+    'galeria' => true, // ou false para desligar até no ambiente local
+];
+```
+
+A rota se chama `ginga.galeria`: `route('ginga.galeria')`. Ela usa o grupo `web`, então precisa do `APP_KEY` configurado, como qualquer página da aplicação.
+
+Sem Laravel rodando, o arquivo [`preview/botoes.html`](preview/botoes.html) mostra os botões e a paleta em HTML puro. Basta abri-lo no navegador.
+
+## Tema e cores
+
+O tema é um CSS pequeno (`ginga-theme.css`) carregado depois do Bootstrap. Ele troca as cores do Bootstrap pelas do Ginga e define variáveis que você pode usar nas suas próprias telas:
+
+| Variável | Uso |
+|----------|-----|
+| `--ginga-rosa`, `-hover`, `-active` | Cor principal (`btn-primary`, links, foco). Os três estados do botão. |
+| `--ginga-rosa-vivo` | Identidade visual: logo, capa. Não use atrás de texto pequeno. |
+| `--ginga-rosa-claro` | Fundo suave da cor principal. |
+| `--ginga-verde-agua`, `-claro`, `-borda`, `-texto` | Sucesso. |
+| `--ginga-ambar`, `-claro`, `-borda`, `-texto` | Aviso. |
+| `--ginga-perigo`, `-claro`, `-borda`, `-texto` | Erro e exclusão. |
+| `--ginga-tinta`, `--ginga-tinta-suave` | Texto e texto secundário. |
+| `--ginga-borda`, `--ginga-superficie`, `--ginga-superficie-alta` | Bordas e fundos. |
+
+Cada cor tem uma versão `-rgb` (`--ginga-rosa-rgb: 201, 48, 111`) para usar em `rgba(var(--ginga-rosa-rgb), .2)`.
+
+**Tema escuro:** coloque `data-bs-theme="dark"` no `<html>` e todas as variáveis mudam sozinhas, com contraste ajustado.
+
+**Trocar uma cor:** sobrescreva a variável em um CSS seu, carregado depois do tema:
+
+```css
+:root {
+    --ginga-rosa: #7B2CBF;
+    --ginga-rosa-rgb: 123, 44, 191;
+}
+```
+
+**Servir como arquivo estático:** por padrão o tema vem da rota `/_ginga/tema.css`. Para copiá-lo para `public/vendor/ginga/ginga-theme.css`:
+
+```bash
+php artisan vendor:publish --tag=ginga-assets
+```
+
+Depois de publicar, ele não se atualiza mais com o pacote: rode o comando de novo ao atualizar.
 
 ## Flash
 
@@ -1009,6 +1070,7 @@ O que os testes cobrem:
 
 - **`tests/Unit`:** validação de CPF, CNPJ (inclusive o alfanumérico), CEP, telefone e UF; máscaras; opções e valores dos campos.
 - **`tests/Feature`:** o HTML de cada componente, o `old()` e os erros depois de um envio, a `Tabela` com um banco SQLite em memória, a rota do tema e as diretivas.
+- **Galeria:** a página `/_ginga` renderiza com todos os exemplos.
 - **Compilação:** todo componente e partial precisa virar PHP válido. Esse teste pega erros que só aparecem ao abrir a página, como uma tag `<x-...>` escrita dentro de um comentário JavaScript.
 
 O JavaScript dos componentes (máscaras, datatable, multiselect, exclusão) ainda não tem testes automatizados.
