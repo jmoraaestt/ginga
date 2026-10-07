@@ -995,3 +995,20 @@ Não use só a cor para passar a informação: o texto do badge ("Ativo", "Inati
 ```
 
 Os itens são `texto => link`. O último é a página atual: não vira link e recebe `aria-current="page"`.
+
+## Desenvolvimento
+
+Os testes usam [Pest](https://pestphp.com) e [Orchestra Testbench](https://packages.tools/testbench), que sobe um Laravel mínimo para testar o pacote:
+
+```bash
+composer install
+composer test
+```
+
+O que os testes cobrem:
+
+- **`tests/Unit`:** validação de CPF, CNPJ (inclusive o alfanumérico), CEP, telefone e UF; máscaras; opções e valores dos campos.
+- **`tests/Feature`:** o HTML de cada componente, o `old()` e os erros depois de um envio, a `Tabela` com um banco SQLite em memória, a rota do tema e as diretivas.
+- **Compilação:** todo componente e partial precisa virar PHP válido. Esse teste pega erros que só aparecem ao abrir a página, como uma tag `<x-...>` escrita dentro de um comentário JavaScript.
+
+O JavaScript dos componentes (máscaras, datatable, multiselect, exclusão) ainda não tem testes automatizados.

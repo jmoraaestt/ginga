@@ -104,9 +104,13 @@ class Tabela implements IteratorAggregate
             $query->orderBy($query->getModel()->getQualifiedKeyName(), $this->direcao);
         }
 
+        // Página, endereço e parâmetros vêm da mesma requisição da busca, não da requisição global
+        $pagina = max(1, (int) $this->request->query(self::PAGINA));
+
         $this->linhas = $query
-            ->paginate($this->porPagina, ['*'], self::PAGINA)
-            ->withQueryString();
+            ->paginate($this->porPagina, ['*'], self::PAGINA, $pagina)
+            ->withPath($this->request->url())
+            ->appends(Arr::except($this->request->query(), self::PAGINA));
 
         return $this;
     }

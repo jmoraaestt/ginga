@@ -20,5 +20,20 @@
         "laravel": {
             "providers": ["Ginga\\GingaServiceProvider"]
         }
+    },
+    "require-dev": {
+        "orchestra/testbench": "^11.0",
+        "pestphp/pest": "^4.0"
+    },
+    "autoload-dev": {
+        "psr-4": { "Ginga\\Tests\\": "tests/" }
+    },
+    "scripts": {
+        "test": "pest"
+    },
+    "config": {
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
+        }
     }
 }
