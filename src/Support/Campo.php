@@ -2,10 +2,14 @@
 
 namespace Ginga\Support;
 
+use BackedEnum;
+use DateTimeInterface;
+use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Support\Str;
+use UnitEnum;
 
 /**
- * Lógica comum dos campos de formulário: chave de erro, id, old() e mensagens.
+ * Lógica comum dos campos de formulário: chave de erro, id, old(), opções e mensagens.
  */
 class Campo
 {
@@ -17,13 +21,21 @@ class Campo
         return $name ? str_replace(['[]', '[', ']'], ['', '.', ''], $name) : null;
     }
 
+    /**
+     * Listas enviam um array: "interesses" vira "interesses[]".
+     */
+    public static function nomeLista(?string $name): ?string
+    {
+        return $name && ! str_ends_with($name, '[]') ? $name . '[]' : $name;
+    }
+
     public static function id(?string $id, ?string $chave): string
     {
         return $id ?? 'campo-' . ($chave ? str_replace('.', '-', $chave) : Str::random(8));
     }
 
     /**
-     * Primeira mensagem de erro do campo. Em grupos, também procura erros dos itens ("interesses.0").
+     * Primeira mensagem de erro do campo. Em listas, também procura erros dos itens ("interesses.0").
      */
     public static function erro(mixed $errors, ?string $chave, bool $itens = false): ?string
     {
@@ -49,19 +61,98 @@ class Campo
     }
 
     /**
-     * Valores marcados de checkboxes e radios, como strings para comparar com as opções.
+     * Valores marcados de checkboxes, radios e selects múltiplos.
      */
     public static function marcados(?string $chave, mixed $padrao): array
     {
         // Sem chave, old() devolveria todos os campos enviados
-        $valores = $chave && self::enviado() ? old($chave) : $padrao;
+        return self::lista($chave && self::enviado() ? old($chave) : $padrao);
+    }
 
-        return array_map('strval', array_filter((array) $valores, fn ($valor) => $valor !== null));
+    /**
+     * Qualquer valor vira uma lista de strings para comparar com as opções: "SP", ["SP"], Collection, enum.
+     */
+    public static function lista(mixed $valores): array
+    {
+        $valores = match (true) {
+            $valores instanceof Arrayable => $valores->toArray(),
+            is_array($valores) => $valores,
+            default => [$valores],
+        };
+
+        $valores = array_filter($valores, fn ($valor) => $valor !== null);
+
+        return array_values(array_map(fn ($valor) => (string) self::valor($valor), $valores));
+    }
+
+    /**
+     * Opções de select, radio-group e checkbox-group. Aceita:
+     * - ['sp' => 'São Paulo']: valor => texto
+     * - ['Manhã', 'Tarde']: lista simples, o texto também é o valor
+     * - Empresa::pluck('nome', 'id'): Collection
+     * - Plano::class: enum (usa o método label() do enum, se existir)
+     */
+    public static function opcoes(mixed $opcoes): array
+    {
+        if (is_string($opcoes) && enum_exists($opcoes)) {
+            $resultado = [];
+
+            foreach ($opcoes::cases() as $caso) {
+                $resultado[self::valor($caso)] = method_exists($caso, 'label') ? $caso->label() : $caso->name;
+            }
+
+            return $resultado;
+        }
+
+        $opcoes = $opcoes instanceof Arrayable ? $opcoes->toArray() : (array) $opcoes;
+
+        return array_is_list($opcoes) ? array_combine($opcoes, $opcoes) : $opcoes;
+    }
+
+    /**
+     * Enums viram o valor salvo no banco.
+     */
+    public static function valor(mixed $valor): mixed
+    {
+        return match (true) {
+            $valor instanceof BackedEnum => $valor->value,
+            $valor instanceof UnitEnum => $valor->name,
+            default => $valor,
+        };
+    }
+
+    /**
+     * Valor no formato que cada tipo de input espera. Datas do Eloquent (Carbon) funcionam direto.
+     */
+    public static function valorInput(mixed $valor, string $tipo): mixed
+    {
+        $valor = self::valor($valor);
+
+        if (! $valor instanceof DateTimeInterface) {
+            return $valor;
+        }
+
+        return $valor->format(match ($tipo) {
+            'date' => 'Y-m-d',
+            'datetime-local' => 'Y-m-d\TH:i',
+            'time' => 'H:i',
+            'month' => 'Y-m',
+            'week' => 'o-\WW',
+            default => 'd/m/Y',
+        });
+    }
+
+    /**
+     * Atributo booleano presente e não desligado: required, disabled, multiple...
+     */
+    public static function ativo($attributes, string $nome): bool
+    {
+        return $attributes->has($nome) && $attributes->get($nome) !== false;
     }
 
     public static function obrigatorio($attributes): bool
     {
-        return $attributes->has('required') && $attributes->get('required') !== false;
+        return self::ativo($attributes, 'required');
     }
 
     /**

@@ -63,6 +63,21 @@ class Mascara
     }
 
     /**
+     * Texto para exibir em tabelas e páginas. Usado pelas diretivas @cpf, @dinheiro etc.
+     * Vazio vira "", e dinheiro ganha "R$" (com espaço que não quebra a linha).
+     */
+    public static function exibir(string $tipo, mixed $valor): string
+    {
+        if ($valor === null || $valor === '') {
+            return '';
+        }
+
+        $formatado = (string) self::aplicar($tipo, $valor);
+
+        return $tipo === 'dinheiro' ? "R$\u{00A0}" . $formatado : $formatado;
+    }
+
+    /**
      * Remove a máscara para salvar no banco.
      * Documentos e telefone viram só dígitos (o CNPJ mantém as letras, em maiúsculas).
      * Dinheiro vira decimal com ponto: "1.234,56" -> "1234.56".

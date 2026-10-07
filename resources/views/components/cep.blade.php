@@ -1,8 +1,10 @@
+{{--
+    preencher: campo do ViaCEP => name ou id do campo do formulário, ex.: ['logradouro' => 'endereco', 'uf' => 'uf']
+    focar:     name ou id do campo que recebe o foco depois de preencher, normalmente o número
+--}}
 @props([
     'label' => 'CEP',
-    // Campo do ViaCEP => name (ou id) do campo do formulário. Ex.: ['logradouro' => 'endereco', 'uf' => 'uf']
     'preencher' => [],
-    // name (ou id) do campo que recebe o foco depois de preencher, normalmente o número
     'focar' => null,
 ])
 

@@ -2,6 +2,10 @@
 @once('ginga-mascara')
 <script>
 (() => {
+    // A datatable pode executar este script de novo ao trocar a tabela
+    if (window.gingaMascara) return;
+    window.gingaMascara = true;
+
     const CPF = '000.000.000-00';
     const CNPJ = '00.000.000/0000-00';
 

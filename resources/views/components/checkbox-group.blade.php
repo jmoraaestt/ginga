@@ -14,13 +14,13 @@
 
 @php
     $chave = Campo::chave($name);
-    $id = Campo::id(null, $chave);
+    $id = Campo::id($attributes->get('id'), $chave);
     $erro = Campo::erro($errors ?? null, $chave, itens: true);
     $marcados = Campo::marcados($chave, $value);
-    $nome = $name && ! str_ends_with($name, '[]') ? $name . '[]' : $name;
+    $nome = Campo::nomeLista($name);
 
-    // A classe vai para o fieldset; os demais atributos (wire:model, disabled...) vão para cada checkbox
-    $atributosItem = $attributes->except('class');
+    // class e id vão para o fieldset; os demais atributos (wire:model, disabled...) vão para cada checkbox
+    $atributosItem = $attributes->except(['class', 'id']);
 @endphp
 
 
@@ -35,7 +35,7 @@
         @if ($required)<span class="text-danger" aria-hidden="true">*</span>@endif
     </legend>
 @endif
-@foreach ($options as $opcao => $texto)
+@foreach (Campo::opcoes($options) as $opcao => $texto)
     <div @class(['form-check', 'form-check-inline' => $inline, 'form-switch' => $switch])>
         <input {{ $atributosItem->merge([
             'class' => \Illuminate\Support\Arr::toCssClasses(['form-check-input', 'is-invalid' => $erro]),

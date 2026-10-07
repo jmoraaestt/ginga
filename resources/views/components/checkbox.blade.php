@@ -20,7 +20,7 @@
 
     // Checkbox desmarcado não é enviado. O hidden manda "0" para o servidor saber que foi desmarcado.
     // Não vale para listas (name="itens[]") nem para campos desabilitados, que não devem mudar o valor salvo
-    $desabilitado = $attributes->has('disabled') && $attributes->get('disabled') !== false;
+    $desabilitado = Campo::ativo($attributes, 'disabled');
     $comOculto = $name && $uncheckedValue !== null && ! str_ends_with($name, '[]') && ! $desabilitado;
 
     // Atributos com valor null ou false não são renderizados

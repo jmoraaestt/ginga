@@ -4,8 +4,8 @@ namespace Ginga;
 
 use Ginga\Support\Validador;
 use Illuminate\Support\Facades\Blade;
-use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Validation\Factory as Validacao;
 
 class GingaServiceProvider extends ServiceProvider
 {
@@ -18,19 +18,41 @@ class GingaServiceProvider extends ServiceProvider
         'uf' => [[Validador::class, 'uf'], 'O campo :attribute deve ser uma UF válida.'],
     ];
 
-    public function boot(): void{
+    // Diretiva => máscara. Ex.: @cpf($cliente->cpf), @dinheiro($pedido->total)
+    private const DIRETIVAS = [
+        'cpf' => 'cpf',
+        'cnpj' => 'cnpj',
+        'cpfCnpj' => 'cpf-cnpj',
+        'cep' => 'cep',
+        'telefone' => 'telefone',
+        'dinheiro' => 'dinheiro',
+    ];
+
+    public function boot(): void
+    {
         Blade::anonymousComponentPath(__DIR__ . '/../resources/views/components', 'ginga');
 
-        // Views internas, como o script das máscaras: ginga::partials.mascara
+        // Views internas, como os scripts das máscaras e da exclusão: ginga::partials.mascara
         $this->loadViewsFrom(__DIR__ . '/../resources/views', 'ginga');
 
-        $this->publishes([
-    __DIR__ . '/../resources/css/ginga-theme.css' => public_path('vendor/ginga/ginga-theme.css'),
-    ], 'ginga-assets');
+        // Rota do tema usada pelo <x-ginga::styles>
+        $this->loadRoutesFrom(__DIR__ . '/../routes/ginga.php');
 
-        // A mensagem é usada quando a aplicação não define validation.{regra} nos arquivos de tradução
-        foreach (self::REGRAS as $regra => [$validar, $mensagem]) {
-            Validator::extend($regra, fn ($atributo, $valor) => $validar($valor), $mensagem);
+        // Opcional: copiar o tema para public/ e servir como arquivo estático
+        $this->publishes([
+            Ginga::TEMA => public_path('vendor/ginga/ginga-theme.css'),
+        ], 'ginga-assets');
+
+        foreach (self::DIRETIVAS as $diretiva => $mascara) {
+            Blade::directive($diretiva, fn ($valor) => "<?php echo e(\\Ginga\\Support\\Mascara::exibir('{$mascara}', {$valor})); ?>");
         }
+
+        // Só registra as regras quando a validação é usada de fato.
+        // A mensagem vale quando a aplicação não define validation.{regra} nos arquivos de tradução
+        $this->callAfterResolving('validator', function (Validacao $validacao) {
+            foreach (self::REGRAS as $regra => [$validar, $mensagem]) {
+                $validacao->extend($regra, fn ($atributo, $valor) => $validar($valor), $mensagem);
+            }
+        });
     }
 }

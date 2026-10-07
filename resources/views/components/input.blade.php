@@ -22,7 +22,7 @@
 
     // Senha nunca volta preenchida
     $valor = $tipo === 'password' ? $value : Campo::antigo($chave, $value);
-    $valor = Mascara::aplicar($mask, $valor);
+    $valor = Mascara::aplicar($mask, Campo::valorInput($valor, $tipo));
 
     $obrigatorio = Campo::obrigatorio($attributes);
     $temGrupo = filled($prefix) || filled($suffix);

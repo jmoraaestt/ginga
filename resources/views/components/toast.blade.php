@@ -51,13 +51,31 @@
 
 @once
 <script>
-    // O Bootstrap não exibe toasts sozinho: mostra todos os toasts do Ginga ao carregar a página
-    document.addEventListener('DOMContentLoaded', () => {
-        if (!window.bootstrap) return;
+(() => {
+    if (window.gingaToast) return;
+    window.gingaToast = true;
 
-        document.querySelectorAll('[data-ginga-toast]').forEach((toast) => {
-            bootstrap.Toast.getOrCreateInstance(toast).show();
-        });
-    });
+    // O Bootstrap não exibe toasts sozinho: mostra os toasts do Ginga quando a página termina de carregar
+    const mostrar = () => {
+        for (const toast of document.querySelectorAll('[data-ginga-toast]:not(.show)')) {
+            if (window.bootstrap?.Toast) {
+                bootstrap.Toast.getOrCreateInstance(toast).show();
+                continue;
+            }
+
+            // Bootstrap importado como módulo (Vite) não fica em window.bootstrap: mostra e esconde à mão
+            toast.classList.add('show');
+            if (toast.dataset.bsAutohide !== 'false') {
+                setTimeout(() => toast.classList.remove('show'), Number(toast.dataset.bsDelay) || 5000);
+            }
+        }
+    };
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', mostrar);
+    } else {
+        mostrar();
+    }
+})();
 </script>
 @endonce

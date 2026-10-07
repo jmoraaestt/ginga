@@ -1,5 +1,115 @@
 # ginga
 
+Componentes Blade com Bootstrap 5 feitos para aplicações brasileiras: formulários com CPF, CNPJ (inclusive o alfanumérico), CEP e dinheiro, mensagens, tabelas com busca no servidor e confirmação de exclusão. Tudo em português e acessível.
+
+## Primeiros passos
+
+**1. Instale**
+
+```bash
+composer require jmoraaestt/ginga
+```
+
+**2. Monte o layout** com três componentes:
+
+```blade
+<!doctype html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Minha aplicação</title>
+
+    <x-ginga::styles />   {{-- Bootstrap + tema do Ginga --}}
+</head>
+<body>
+    {{ $slot }}
+
+    <x-ginga::flash />    {{-- mensagens de sucesso e erro como toasts --}}
+    <x-ginga::scripts />  {{-- JavaScript do Bootstrap --}}
+</body>
+</html>
+```
+
+**3. Use os componentes:**
+
+```blade
+<form method="POST" action="{{ route('clientes.store') }}">
+    @csrf
+    <x-ginga::input name="nome" label="Nome" required />
+    <x-ginga::cpf name="cpf" required />
+    <x-ginga::telefone name="celular" />
+    <x-ginga::cep name="cep" :preencher="['logradouro' => 'endereco', 'localidade' => 'cidade', 'uf' => 'uf']" />
+    <x-ginga::button type="submit">Salvar</x-ginga::button>
+</form>
+```
+
+```php
+$request->validate(['cpf' => 'required|cpf', 'celular' => 'nullable|telefone', 'cep' => 'cep']);
+
+return redirect()->route('clientes.index')->with('sucesso', 'Cliente salvo.');
+```
+
+Pronto: os campos ganham máscara, o erro de validação aparece embaixo do campo certo, o valor digitado volta depois de um erro e o `flash` mostra "Cliente salvo." no canto da tela.
+
+### `styles` e `scripts`
+
+| Componente | Prop | Padrão | Descrição |
+|------------|------|--------|-----------|
+| `<x-ginga::styles />` | `bootstrap` | `true` | Carrega o CSS do Bootstrap pelo CDN. Use `:bootstrap="false"` se a aplicação já carrega o Bootstrap. |
+| | `icons` | `false` | Carrega também o [Bootstrap Icons](https://icons.getbootstrap.com). |
+| `<x-ginga::scripts />` | — | — | Carrega o JavaScript do Bootstrap pelo CDN. |
+
+O tema do Ginga é servido pelo próprio pacote (`/_ginga/tema.css`), então não é preciso rodar `vendor:publish`, e ele se atualiza junto com o pacote.
+
+**Com Vite:** use `<x-ginga::styles :bootstrap="false" />`, não use `<x-ginga::scripts />` e exponha o Bootstrap para os componentes do Ginga:
+
+```js
+// resources/js/app.js
+import * as bootstrap from 'bootstrap';
+window.bootstrap = bootstrap;
+```
+
+### Componentes
+
+| Grupo | Componentes |
+|-------|-------------|
+| Layout | [`styles`, `scripts`](#styles-e-scripts), [`flash`](#flash) |
+| Ações | [`button`](#button), [`delete-button`](#confirmação-de-exclusão) |
+| Mensagens | [`alert`](#alert), [`toast`](#toast), [`flash`](#flash), [`modal`](#modal) |
+| Formulário | [`input`, `select`](#input-e-select), [`textarea`](#textarea), [`checkbox`, `switch`](#checkbox-e-switch), [`checkbox-group`, `radio-group`](#checkbox-group-e-radio-group), [`multiselect`](#multiselect) |
+| Brasil | [`cpf`, `cnpj`, `cpf-cnpj`, `telefone`, `dinheiro`, `cep`, `uf`](#campos-brasileiros), [diretivas `@cpf`, `@dinheiro`...](#exibindo-valores-formatados) |
+| Listagens | [`datatable`](#datatable), [`table`](#table), [`pagination`](#pagination), [`badge`](#badge) |
+| Estrutura | [`card`](#card), [`breadcrumb`](#breadcrumb) |
+
+## Flash
+
+Mostra as mensagens da sessão como toasts. Coloque uma vez no layout:
+
+```blade
+<x-ginga::flash />
+```
+
+E use `with()` no redirect:
+
+```php
+return redirect()->route('clientes.index')->with('sucesso', 'Cliente salvo.');
+```
+
+| Chave da sessão | Cor |
+|-----------------|-----|
+| `sucesso` ou `success` | verde |
+| `erro` ou `error` | vermelho (fica 8 segundos na tela) |
+| `aviso` ou `warning` | amarelo |
+| `info` | rosa |
+
+Depois de um erro de validação, o `flash` também mostra "Corrija os 3 campos destacados.", e cada mensagem aparece embaixo do seu campo.
+
+| Prop         | Tipo     | Padrão         | Descrição |
+|--------------|----------|----------------|-----------|
+| `position`   | `string` | `'bottom-end'` | Canto da tela. Veja [`toast-container`](#toast-container). |
+| `validation` | `bool`   | `true`         | Mostra o toast de erro de validação. |
+
 ## Button
 
 Botão do Bootstrap 5.3 com suporte a links, estado de carregamento e ícones.
@@ -123,18 +233,19 @@ Você pode usar qualquer biblioteca de ícones ou SVG inline. Para ícones decor
 
 ### Cores
 
-O componente usa apenas classes do Bootstrap. As cores vêm do tema da sua aplicação ou do tema opcional do Ginga:
+O componente usa apenas classes do Bootstrap. As cores vêm do tema do Ginga, carregado pelo [`<x-ginga::styles />`](#styles-e-scripts).
+
+Para servir o tema como arquivo estático (por exemplo, num CDN), copie para `public/` e inclua **depois** do CSS do Bootstrap:
 
 ```bash
 php artisan vendor:publish --tag=ginga-assets
 ```
 
-Inclua o tema **depois** do CSS do Bootstrap, senão as regras do Bootstrap prevalecem:
-
 ```html
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
 <link rel="stylesheet" href="{{ asset('vendor/ginga/ginga-theme.css') }}">
 ```
+
+A cópia não se atualiza sozinha: rode o comando de novo com `--force` a cada atualização do pacote.
 
 ## Alert
 
@@ -294,35 +405,17 @@ O `danger` recebe `role="alert"` e `aria-live="assertive"`, que fazem o leitor d
 
 Slots: o padrão (a mensagem), `title` e `icon`, iguais aos do Alert.
 
-### Exemplo: sucesso e erros de validação
+### Mensagens de sucesso e erro
+
+Para as mensagens da sessão, use o [`<x-ginga::flash />`](#flash), que monta os toasts sozinho. Use `toast` diretamente só para mensagens personalizadas:
 
 ```blade
 <x-ginga::toast-container>
-    @if (session('sucesso'))
-        <x-ginga::toast variant="success">
-            <x-slot:icon>
-                <i class="bi bi-check-circle-fill" aria-hidden="true"></i>
-            </x-slot:icon>
-            {{ session('sucesso') }}
-        </x-ginga::toast>
-    @endif
-
-    @if ($errors->any())
-        <x-ginga::toast variant="danger" title="Não foi possível salvar" :delay="8000">
-            <x-slot:icon>
-                <i class="bi bi-x-circle-fill" aria-hidden="true"></i>
-            </x-slot:icon>
-            <ul class="mb-0 ps-3">
-                @foreach ($errors->all() as $erro)
-                    <li>{{ $erro }}</li>
-                @endforeach
-            </ul>
-        </x-ginga::toast>
-    @endif
+    <x-ginga::toast variant="warning" title="Assinatura vencendo" :autohide="false">
+        Renove até sexta para não perder o acesso.
+    </x-ginga::toast>
 </x-ginga::toast-container>
 ```
-
-Coloque o container uma única vez no layout, por exemplo logo depois da abertura do `<body>`, e todas as páginas passam a exibir as mensagens.
 
 > **Erros que somem:** quem lê devagar ou usa leitor de tela pode não conseguir ler a mensagem a tempo. Para erros, use um `delay` maior ou `:autohide="false"`. Para erros de validação, mantenha também a indicação no próprio campo (`is-invalid` e `invalid-feedback`).
 
@@ -362,7 +455,7 @@ O componente cuida de:
 | `name`   | `string\|null` | `null`   | Nome do campo. Também é usado para achar o erro e o `old()`. |
 | `label`  | `string\|null` | `null`   | Texto do label. |
 | `type`   | `string\|null` | `'text'` | Tipo do input (`email`, `password`, `number`...). |
-| `value`  | `mixed`        | `null`   | Valor inicial. O `old()` tem prioridade depois de um envio com erro. |
+| `value`  | `mixed`        | `null`   | Valor inicial. O `old()` tem prioridade depois de um envio com erro. Datas do Eloquent funcionam direto: `type="date" :value="$cliente->nascimento"`. |
 | `help`   | `string\|null` | `null`   | Texto de ajuda embaixo do campo (`form-text`). |
 | `mask`   | `string\|null` | `null`   | Máscara: `cpf`, `cnpj`, `cpf-cnpj`, `cep`, `telefone` ou `dinheiro`. Veja [Campos brasileiros](#campos-brasileiros). |
 | `prefix` | `string\|null` | `null`   | Texto antes do campo, em um `input-group` (ex.: `R$`). |
@@ -374,16 +467,84 @@ O componente cuida de:
 |---------------|----------------|--------|-----------|
 | `name`        | `string\|null` | `null` | Nome do campo. |
 | `label`       | `string\|null` | `null` | Texto do label. |
-| `options`     | `array`        | `[]`   | Opções no formato `valor => texto`. |
-| `value`       | `mixed`        | `null` | Valor selecionado. O `old()` tem prioridade. |
+| `options`     | `mixed`        | `[]`   | Opções. Veja [formatos de opções](#formatos-de-opções). |
+| `value`       | `mixed`        | `null` | Valor selecionado (ou array, no múltiplo). Aceita enum. O `old()` tem prioridade. |
 | `placeholder` | `string\|null` | `null` | Primeira opção, com valor vazio (ex.: `Selecione`). |
 | `help`        | `string\|null` | `null` | Texto de ajuda embaixo do campo. |
 
 ```blade
 <x-ginga::select name="plano" label="Plano" placeholder="Selecione" :options="['basico' => 'Básico', 'pro' => 'Profissional']" />
+
+{{-- Múltiplo: o [] do name é adicionado sozinho e o servidor recebe um array --}}
+<x-ginga::select name="estados" label="Estados" multiple :options="$estados" :value="['SP', 'RJ']" />
 ```
 
+> **Escolher vários:** no select múltiplo é preciso segurar Ctrl (ou Cmd), o que muita gente não sabe. Com poucas opções, prefira o [`checkbox-group`](#checkbox-group-e-radio-group). Com muitas, como os 27 estados, prefira o [`multiselect`](#multiselect).
+
+## Multiselect
+
+Campo que abre um modal para escolher várias opções, com busca, "Selecionar todos" e "Limpar". A escolha só vale ao clicar em **Inserir**. Fechar ou cancelar descarta. Os itens escolhidos aparecem embaixo do campo como etiquetas, cada uma com um botão para remover.
+
+```blade
+<x-ginga::multiselect
+    name="estados"
+    label="Estados onde atende"
+    title="Escolher estados"
+    :options="Brasil::ESTADOS"
+    :value="$profissional->estados"
+/>
+```
+
+O servidor recebe um array (`estados[]`), como no `checkbox-group`:
+
+```php
+'estados' => 'required|array|min:1',
+'estados.*' => 'uf',
+```
+
+| Prop          | Tipo           | Padrão        | Descrição |
+|---------------|----------------|---------------|-----------|
+| `name`        | `string\|null` | `null`        | Nome do campo. O `[]` é adicionado sozinho. |
+| `label`       | `string\|null` | `null`        | Texto do label do campo e do campo de busca. |
+| `title`       | `string\|null` | o `label`     | Título do modal. |
+| `options`     | `mixed`        | `[]`          | Opções. Veja [formatos de opções](#formatos-de-opções). |
+| `value`       | `mixed`        | `[]`          | Opções já escolhidas. O `old()` tem prioridade depois de um erro. |
+| `placeholder` | `string`       | `'Selecione'` | Texto do campo quando nada foi escolhido. |
+| `confirm`     | `string`       | `'Inserir'`   | Texto do botão que confirma a escolha. |
+| `search`      | `bool\|null`   | `null`        | Mostra a busca. Com `null`, aparece só quando há mais de 8 opções. A busca ignora acentos: "sao" encontra "São Paulo". |
+| `required`    | `bool`         | `false`       | Mostra o asterisco. Exigir pelo menos uma opção é papel da validação no servidor. |
+| `help`        | `string\|null` | `null`        | Texto de ajuda. |
+
+**Acessibilidade:**
+- **Campo:** o leitor de tela anuncia o rótulo e a quantidade ("Estados onde atende, 3 selecionados").
+- **Abrir o modal:** o foco vai para a busca.
+- **Remover uma etiqueta:** o foco passa para a etiqueta seguinte.
+
+Ao inserir ou remover, o componente dispara o evento `ginga:multiselect` com os valores escolhidos (`evento.detail.valores`).
+
+Depende do JavaScript do Bootstrap.
+
 Qualquer outro atributo (`required`, `autofocus`, `wire:model`...) vai para o `<input>` ou `<select>`. O componente vem com `mb-3` em volta.
+
+### Formatos de opções
+
+`select`, `radio-group` e `checkbox-group` aceitam as opções de várias formas:
+
+```blade
+{{-- valor => texto --}}
+:options="['sp' => 'São Paulo', 'rj' => 'Rio de Janeiro']"
+
+{{-- lista simples: o texto também é o valor enviado --}}
+:options="['Manhã', 'Tarde', 'Noite']"
+
+{{-- Collection do Eloquent --}}
+:options="Empresa::orderBy('nome')->pluck('nome', 'id')"
+
+{{-- enum: usa o método label() do enum, se existir, ou o nome do caso --}}
+:options="Plano::class"
+```
+
+O `value` também aceita o próprio enum (`:value="$assinatura->plano"`), uma Collection ou um array.
 
 ## Textarea
 
@@ -548,6 +709,21 @@ $request->validate([
 
 As mensagens já vêm em português ("O campo :attribute deve ser um CPF válido."). Para trocar, defina `validation.cpf`, `validation.cnpj` etc. no arquivo de tradução da aplicação.
 
+### Exibindo valores formatados
+
+Em tabelas e páginas, use as diretivas para mostrar o valor salvo sem máscara já formatado:
+
+```blade
+@cpf($cliente->cpf)            {{-- 529.982.247-25 --}}
+@cnpj($empresa->cnpj)          {{-- 12.ABC.345/01DE-35 --}}
+@cpfCnpj($cliente->documento)  {{-- CPF ou CNPJ, conforme o tamanho --}}
+@cep($endereco->cep)           {{-- 01310-100 --}}
+@telefone($cliente->celular)   {{-- (11) 98765-4321 --}}
+@dinheiro($pedido->total)      {{-- R$ 1.234,50 --}}
+```
+
+O texto sai escapado, como no `{{ }}`. Um valor vazio (`null`) não mostra nada. No PHP, o equivalente é `Mascara::exibir('cpf', $valor)`.
+
 ### Salvando sem máscara
 
 Use `Ginga\Support\Mascara::limpar()` para guardar só o valor no banco:
@@ -575,3 +751,247 @@ protected function prepareForValidation(): void
 ```
 
 > **CNPJ no banco:** desde julho de 2026 o CNPJ pode ter letras. Guarde em uma coluna de texto (`string('cnpj', 14)`), não em uma coluna numérica.
+
+## Datatable
+
+Tabela com busca, ordenação e paginação feitas no servidor, direto no banco. Funciona com qualquer quantidade de registros, porque só a página atual é carregada.
+
+**No controller**, a classe `Tabela` lê a query string e monta a consulta:
+
+```php
+use Ginga\Support\Tabela;
+
+public function index()
+{
+    $clientes = Tabela::de(Cliente::query())
+        ->buscarEm(['nome', 'email', 'cpf', 'empresa.nome'])
+        ->ordenarPor(['nome', 'created_at'], padrao: 'nome')
+        ->paginar();
+
+    return view('clientes.index', compact('clientes'));
+}
+```
+
+**Na view**, você escreve as linhas e o componente cuida do resto:
+
+```blade
+<x-ginga::datatable
+    :tabela="$clientes"
+    placeholder="Buscar por nome, e-mail ou CPF"
+    :columns="[
+        'nome' => 'Nome',
+        'cpf' => 'CPF',
+        'mensalidade' => ['label' => 'Mensalidade', 'class' => 'text-end'],
+        'created_at' => 'Cliente desde',
+        'acoes' => ['label' => 'Ações', 'hidden' => true],
+    ]"
+>
+    @foreach ($clientes as $cliente)
+        <tr>
+            <td>{{ $cliente->nome }}</td>
+            <td>@cpf($cliente->cpf)</td>
+            <td class="text-end">@dinheiro($cliente->mensalidade)</td>
+            <td>{{ $cliente->created_at->format('d/m/Y') }}</td>
+            <td class="text-end">
+                <x-ginga::delete-button :action="route('clientes.destroy', $cliente)" :item="$cliente->nome" />
+            </td>
+        </tr>
+    @endforeach
+</x-ginga::datatable>
+```
+
+A tela fica com:
+
+- **Busca:** um campo que procura nas colunas de `buscarEm()`.
+- **Itens por página:** um seletor com 10, 25, 50 ou 100.
+- **Ordenação:** cabeçalhos clicáveis nas colunas de `ordenarPor()`, com seta e `aria-sort`.
+- **Paginação em português:** com o resumo "Mostrando 1 a 10 de 138 resultados".
+- **Lista vazia:** "Nenhum registro encontrado." Quando há busca, "Nenhum resultado para “xyz”." com um link "Limpar busca".
+
+### A classe `Tabela`
+
+| Método | Descrição |
+|--------|-----------|
+| `Tabela::de($query)` | Recebe um query builder do Eloquent, uma relação (`$empresa->clientes()`) ou um `DB::table()`. |
+| `buscarEm(array $colunas)` | Colunas pesquisadas. Use ponto para relacionamentos: `empresa.nome`. |
+| `ordenarPor(array $colunas, ?string $padrao, string $direcao = 'asc')` | Colunas que podem ser ordenadas e a ordem inicial. |
+| `itensPorPagina(int $padrao, ?array $opcoes)` | Padrão `10`, opções `[10, 25, 50, 100]`. |
+| `paginar()` | Executa a consulta. O resultado fica em `$tabela->linhas` (um paginator do Laravel). |
+
+A `Tabela` pode ser percorrida com `@foreach` diretamente. Depois de `paginar()`, o estado lido da URL fica em `$tabela->busca`, `$tabela->ordem`, `$tabela->direcao` e `$tabela->porPagina`.
+
+**Parâmetros da URL:** `?busca=maria&ordenar=nome&direcao=desc&por_pagina=25&pagina=2`. Por isso o endereço pode ser salvo nos favoritos ou compartilhado e abre do mesmo jeito.
+
+**Segurança:** só as colunas de `ordenarPor()` podem ser ordenadas, só as opções de `itensPorPagina()` são aceitas e valores inválidos voltam ao padrão. A busca usa parâmetros do banco (bindings), nunca texto concatenado no SQL.
+
+**Busca em documentos:** quando a busca tem números, a `Tabela` também procura a versão sem pontuação. Assim `529.982.247` encontra o CPF salvo como `52998224725`, e o mesmo vale para CNPJ, CEP e telefone.
+
+**Maiúsculas e minúsculas:** a busca usa `LIKE`, e no PostgreSQL usa `ILIKE`. Nos dois casos, maiúsculas e minúsculas são tratadas como iguais.
+
+### Props do componente
+
+| Prop          | Tipo           | Padrão                         | Descrição |
+|---------------|----------------|--------------------------------|-----------|
+| `tabela`      | `Tabela`       | —                              | O resultado de `Tabela::de()`. |
+| `columns`     | `array`        | `[]`                           | `chave => título`. A chave é a coluna do banco, usada na ordenação. Também aceita `['label' => ..., 'class' => ..., 'hidden' => true]`. `hidden` esconde o título visualmente, mas o leitor de tela continua lendo, o que é útil para a coluna de ações. |
+| `search`      | `bool`         | `true`                         | Mostra o campo de busca. |
+| `placeholder` | `string`       | `'Buscar...'`                  | Texto de exemplo do campo de busca. |
+| `empty`       | `string`       | `'Nenhum registro encontrado.'`| Mensagem da tabela vazia, quando não há busca. |
+| `caption`     | `string\|null` | `null`                         | Nome da tabela para leitores de tela (`<caption>` escondido). |
+| `id`          | `string`       | `'ginga-datatable'`            | Precisa ser fixo. Com duas tabelas na mesma página, dê um `id` diferente para cada uma. |
+
+### Com e sem JavaScript
+
+Sem JavaScript, tudo funciona com links e um formulário GET comum, e aparece um botão "Buscar".
+
+Com JavaScript, o componente:
+
+- **Busca enquanto a pessoa digita:** com uma pausa de 350 ms, para não consultar a cada tecla.
+- **Atualiza sem recarregar a página:** busca, troca de itens por página, ordenação e paginação trocam só a tabela. O campo de busca não perde o foco.
+- **Mantém a URL atualizada:** os botões voltar e avançar do navegador funcionam, e Ctrl+clique abre o link em outra aba normalmente.
+- **Anuncia o resultado:** o leitor de tela ouve "Mostrando 1 a 10 de 57 resultados" a cada carregamento.
+
+O JavaScript pede a página inteira ao servidor e troca só a tabela. Não precisa de rota extra nem de mudança no controller. Se algo der errado, ele cai para a navegação normal.
+
+## Table
+
+Tabela simples, sem busca, com mensagem automática quando não há registros:
+
+```blade
+<x-ginga::table :columns="['Nome', 'E-mail']" empty="Nenhum cliente cadastrado.">
+    @foreach ($clientes as $cliente)
+        <tr>
+            <td>{{ $cliente->nome }}</td>
+            <td>{{ $cliente->email }}</td>
+        </tr>
+    @endforeach
+</x-ginga::table>
+```
+
+Quando o `@foreach` não gera nenhuma linha, a tabela mostra a mensagem de `empty`. Para usar HTML na mensagem, passe pelo slot `empty`. Para montar um cabeçalho mais elaborado, use o slot `head` no lugar de `columns`.
+
+| Prop      | Tipo           | Padrão                          | Descrição |
+|-----------|----------------|---------------------------------|-----------|
+| `columns` | `array`        | `[]`                            | Títulos das colunas. |
+| `empty`   | `string`       | `'Nenhum registro encontrado.'` | Mensagem da tabela vazia. |
+| `caption` | `string\|null` | `null`                          | Nome da tabela para leitores de tela. |
+| `striped` | `bool`         | `false`                         | Linhas zebradas. |
+| `hover`   | `bool`         | `true`                          | Destaca a linha sob o mouse. |
+| `small`   | `bool`         | `false`                         | Linhas mais baixas (`table-sm`). |
+
+## Pagination
+
+Paginação em português para qualquer paginator do Laravel:
+
+```blade
+<x-ginga::pagination :paginator="$clientes" />
+```
+
+Mostra "Mostrando 1 a 10 de 57 resultados" (desligue com `:summary="false"`) e os links "Anterior", "1 2 3 … 6" e "Próxima". A página atual tem `aria-current="page"`, e os números são lidos como "Página 2". Funciona com `paginate()` e `simplePaginate()`. Com o `simplePaginate()`, aparecem só "Anterior" e "Próxima".
+
+## Modal
+
+```blade
+<x-ginga::button data-bs-toggle="modal" data-bs-target="#novo-contato">Novo contato</x-ginga::button>
+
+<x-ginga::modal id="novo-contato" title="Novo contato" centered>
+    <p>Conteúdo do modal.</p>
+
+    <x-slot:footer>
+        <x-ginga::button variant="link" data-bs-dismiss="modal">Cancelar</x-ginga::button>
+        <x-ginga::button type="submit" form="form-contato">Salvar</x-ginga::button>
+    </x-slot:footer>
+</x-ginga::modal>
+```
+
+| Prop         | Tipo           | Padrão  | Descrição |
+|--------------|----------------|---------|-----------|
+| `id`         | `string`       | —       | Obrigatório. Usado no `data-bs-target` do botão que abre o modal. |
+| `title`      | `string\|null` | `null`  | Título, ligado ao modal por `aria-labelledby`, com o botão de fechar. |
+| `size`       | `string\|null` | `null`  | `sm`, `lg` ou `xl`. |
+| `centered`   | `bool`         | `false` | Centraliza na vertical. |
+| `scrollable` | `bool`         | `false` | Rola só o corpo quando o conteúdo é grande. |
+| `static`     | `bool`         | `false` | Não fecha ao clicar fora nem com Esc. Útil para formulários que não podem ser perdidos por engano. |
+
+Depende do JavaScript do Bootstrap.
+
+## Confirmação de exclusão
+
+Um botão em cada linha é tudo o que precisa:
+
+```blade
+<x-ginga::delete-button :action="route('clientes.destroy', $cliente)" :item="$cliente->nome" />
+```
+
+Ao clicar, um modal pergunta "Tem certeza que deseja excluir **Maria Silva**? Esta ação não pode ser desfeita." Ao confirmar, ele envia um `DELETE` (com o token CSRF) para a URL de `action`. O botão de confirmar é desabilitado no envio, para não excluir duas vezes, e ao fechar o modal o foco volta para o botão que o abriu.
+
+Sem o JavaScript do Bootstrap, o botão usa a confirmação nativa do navegador e continua funcionando.
+
+Para trocar os textos do modal, coloque um `confirm-delete` na página. Ele substitui o modal padrão:
+
+```blade
+<x-ginga::confirm-delete title="Excluir cliente?" confirm="Sim, excluir" />
+```
+
+**`delete-button`:**
+
+| Prop      | Tipo           | Padrão                       | Descrição |
+|-----------|----------------|------------------------------|-----------|
+| `action`  | `string`       | —                            | URL que recebe o `DELETE`. |
+| `item`    | `string\|null` | `null`                       | Nome mostrado na confirmação. Também é lido pelo leitor de tela ("Excluir Maria Silva"), já que uma tabela tem vários botões "Excluir". |
+| `variant` | `string`       | `'outline-danger'`           | Variante do botão. |
+| `size`    | `string\|null` | `'sm'`                       | Tamanho do botão. |
+| `modal`   | `string`       | `'ginga-confirmar-exclusao'` | `id` de um `confirm-delete` personalizado, quando há mais de um na página. |
+
+O texto do botão é "Excluir". Para trocar ou usar um ícone, passe o conteúdo no slot.
+
+**`confirm-delete`:** aceita `title`, `confirm` (texto do botão, padrão `Excluir`), `cancel` (padrão `Cancelar`) e `id`. Para trocar a pergunta, passe o texto no slot.
+
+## Card
+
+```blade
+<x-ginga::card title="Clientes">
+    <x-slot:actions>
+        <x-ginga::button size="sm" href="{{ route('clientes.create') }}">Novo cliente</x-ginga::button>
+    </x-slot:actions>
+
+    Conteúdo do card.
+
+    <x-slot:footer>Atualizado hoje</x-slot:footer>
+</x-ginga::card>
+```
+
+| Prop    | Tipo           | Padrão  | Descrição |
+|---------|----------------|---------|-----------|
+| `title` | `string\|null` | `null`  | Título no cabeçalho. |
+| `level` | `int`          | `2`     | Nível do título (`h2`, `h3`...), para manter a hierarquia da página. O tamanho visual não muda. |
+| `flush` | `bool`         | `false` | Conteúdo sem o `card-body`, encostado nas bordas. Use com `table` e `list-group`. |
+
+Slots: `actions` (botões à direita do título), `header` (substitui o cabeçalho inteiro) e `footer`.
+
+## Badge
+
+```blade
+<x-ginga::badge variant="success" pill>Ativo</x-ginga::badge>
+<x-ginga::badge variant="danger" subtle>Inativo</x-ginga::badge>
+```
+
+| Prop      | Tipo     | Padrão      | Descrição |
+|-----------|----------|-------------|-----------|
+| `variant` | `string` | `'primary'` | Variante do Bootstrap. |
+| `subtle`  | `bool`   | `false`     | Versão suave, com fundo claro e borda, nas mesmas cores do alert. |
+| `pill`    | `bool`   | `false`     | Cantos arredondados. |
+
+Não use só a cor para passar a informação: o texto do badge ("Ativo", "Inativo") deve fazer sentido sozinho.
+
+## Breadcrumb
+
+```blade
+<x-ginga::breadcrumb :items="[
+    'Início' => route('home'),
+    'Clientes' => route('clientes.index'),
+    $cliente->nome,
+]" />
+```
+
+Os itens são `texto => link`. O último é a página atual: não vira link e recebe `aria-current="page"`.
