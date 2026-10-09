@@ -1,16 +1,43 @@
-# ginga
+# Ginga
 
-Componentes Blade com Bootstrap 5 feitos para aplicações brasileiras: formulários com CPF, CNPJ (inclusive o alfanumérico), CEP e dinheiro, mensagens, tabelas com busca no servidor e confirmação de exclusão. Tudo em português e acessível.
+Componentes Blade com Bootstrap 5 para aplicações Laravel brasileiras: formulários com CPF, CNPJ (inclusive o alfanumérico), CEP, telefone e dinheiro, mensagens, tabelas com busca no servidor e confirmação de exclusão. Tudo em português e acessível.
 
-## Primeiros passos
+- **Campos brasileiros** com máscara, teclado certo no celular e regras de validação (`cpf`, `cnpj`, `cep`...).
+- **Formulários prontos:** label, erro de validação, `old()` e atributos `aria-*` automáticos.
+- **Datatable** com busca, ordenação e paginação feitas no banco.
+- **Tema** em CSS, com modo escuro e cores trocáveis por variáveis.
+- **Sem build:** funciona só com Blade e o CDN do Bootstrap. Com Vite também.
 
-**1. Instale**
+## Sumário
+
+- [Requisitos](#requisitos)
+- [Instalação](#instalação)
+- [Início rápido](#início-rápido)
+- [Configuração](#configuração)
+- [Tema e cores](#tema-e-cores)
+- [Componentes](#componentes)
+- [Desenvolvimento](#desenvolvimento)
+- [Licença](#licença)
+
+## Requisitos
+
+| Requisito | Versão |
+|-----------|--------|
+| PHP | 8.2 ou mais novo |
+| Laravel | 11, 12 ou 13 |
+| Bootstrap | 5.3, pelo CDN ou pela sua aplicação |
+
+## Instalação
 
 ```bash
 composer require jmoraaestt/ginga
 ```
 
-**2. Monte o layout** com três componentes:
+O pacote se registra sozinho (auto-discovery). Não há nada para publicar: o tema é servido pelo próprio pacote.
+
+## Início rápido
+
+**1. Monte o layout** com três componentes:
 
 ```blade
 <!doctype html>
@@ -31,7 +58,7 @@ composer require jmoraaestt/ginga
 </html>
 ```
 
-**3. Use os componentes:**
+**2. Use os componentes e valide:**
 
 ```blade
 <form method="POST" action="{{ route('clientes.store') }}">
@@ -52,7 +79,9 @@ return redirect()->route('clientes.index')->with('sucesso', 'Cliente salvo.');
 
 Pronto: os campos ganham máscara, o erro de validação aparece embaixo do campo certo, o valor digitado volta depois de um erro e o `flash` mostra "Cliente salvo." no canto da tela.
 
-### `styles` e `scripts`
+## Configuração
+
+Os componentes `styles` e `scripts` carregam o Bootstrap e o tema. Ajuste-os conforme a sua aplicação:
 
 | Componente | Prop | Padrão | Descrição |
 |------------|------|--------|-----------|
@@ -69,43 +98,6 @@ O tema do Ginga é servido pelo próprio pacote (`/_ginga/tema.css`), então nã
 import * as bootstrap from 'bootstrap';
 window.bootstrap = bootstrap;
 ```
-
-### Componentes
-
-| Grupo | Componentes |
-|-------|-------------|
-| Layout | [`styles`, `scripts`](#styles-e-scripts), [`flash`](#flash) |
-| Ações | [`button`](#button), [`delete-button`](#confirmação-de-exclusão) |
-| Mensagens | [`alert`](#alert), [`toast`](#toast), [`flash`](#flash), [`modal`](#modal) |
-| Formulário | [`input`, `select`](#input-e-select), [`textarea`](#textarea), [`checkbox`, `switch`](#checkbox-e-switch), [`checkbox-group`, `radio-group`](#checkbox-group-e-radio-group), [`multiselect`](#multiselect) |
-| Brasil | [`cpf`, `cnpj`, `cpf-cnpj`, `telefone`, `dinheiro`, `cep`, `uf`](#campos-brasileiros), [diretivas `@cpf`, `@dinheiro`...](#exibindo-valores-formatados) |
-| Listagens | [`datatable`](#datatable), [`table`](#table), [`pagination`](#pagination), [`badge`](#badge) |
-| Estrutura | [`card`](#card), [`breadcrumb`](#breadcrumb) |
-| Ver e personalizar | [Galeria](#galeria), [Tema e cores](#tema-e-cores) |
-
-## Galeria
-
-Para ver todos os componentes com o design do Ginga (botões, campos, máscaras, tabelas, modal, toasts, tema claro e escuro) sem montar nenhuma tela, abra a galeria na sua aplicação:
-
-```
-http://localhost:8000/_ginga
-```
-
-Cada exemplo aparece renderizado de verdade, com o código Blade que o gera em "Ver código". Os campos brasileiros funcionam: digite um CPF para ver a máscara, ou o CEP `01310-100` para ver o endereço ser preenchido. Os exemplos com erro mostram como o campo fica depois de uma validação que falhou.
-
-A galeria só é registrada em ambiente **local** (`APP_ENV=local`). Para ligar ou desligar à força, crie `config/ginga.php`:
-
-```php
-<?php
-
-return [
-    'galeria' => true, // ou false para desligar até no ambiente local
-];
-```
-
-A rota se chama `ginga.galeria`: `route('ginga.galeria')`. Ela usa o grupo `web`, então precisa do `APP_KEY` configurado, como qualquer página da aplicação.
-
-Sem Laravel rodando, o arquivo [`preview/botoes.html`](preview/botoes.html) mostra os botões e a paleta em HTML puro. Basta abri-lo no navegador.
 
 ## Tema e cores
 
@@ -143,6 +135,23 @@ php artisan vendor:publish --tag=ginga-assets
 
 Depois de publicar, ele não se atualiza mais com o pacote: rode o comando de novo ao atualizar.
 
+## Componentes
+
+Todos os componentes usam o prefixo `x-ginga::`. Cada seção abaixo traz um exemplo, as props e as particularidades de acessibilidade.
+
+| Grupo | Componentes |
+|-------|-------------|
+| Mensagens | [`flash`](#flash), [`alert`](#alert), [`toast`, `toast-container`](#toast), [`modal`](#modal) |
+| Ações | [`button`](#button), [`delete-button`, `confirm-delete`](#confirmação-de-exclusão) |
+| Formulários | [`input`, `select`](#input-e-select), [`multiselect`](#multiselect), [`textarea`](#textarea), [`checkbox`, `switch`](#checkbox-e-switch), [`checkbox-group`, `radio-group`](#checkbox-group-e-radio-group) |
+| Campos brasileiros | [`cpf`, `cnpj`, `cpf-cnpj`, `telefone`, `dinheiro`, `cep`, `uf`, validação e diretivas `@cpf`, `@dinheiro`](#campos-brasileiros) |
+| Listagens | [`datatable`, classe `Tabela`](#datatable), [`table`](#table), [`pagination`](#pagination), [`badge`](#badge) |
+| Estrutura | [`card`](#card), [`breadcrumb`](#breadcrumb) |
+
+> **Props booleanas:** escreva a prop sem valor (`<x-ginga::button pill>`) ou com uma expressão PHP (`:loading="$salvando"`). Evite `loading="false"`: sem os dois-pontos, o valor chega como a string `"false"`, que é verdadeira.
+
+> **Atributos extras:** qualquer atributo não listado nas props (`id`, `wire:model`, `x-show`...) é repassado ao elemento principal. Classes extras são somadas às do componente.
+
 ## Flash
 
 Mostra as mensagens da sessão como toasts. Coloque uma vez no layout:
@@ -170,143 +179,6 @@ Depois de um erro de validação, o `flash` também mostra "Corrija os 3 campos 
 |--------------|----------|----------------|-----------|
 | `position`   | `string` | `'bottom-end'` | Canto da tela. Veja [`toast-container`](#toast-container). |
 | `validation` | `bool`   | `true`         | Mostra o toast de erro de validação. |
-
-## Button
-
-Botão do Bootstrap 5.3 com suporte a links, estado de carregamento e ícones.
-
-```blade
-<x-ginga::button>Salvar</x-ginga::button>
-```
-
-Gera:
-
-```html
-<button class="btn btn-primary" type="button">
-    Salvar
-</button>
-```
-
-### Props
-
-| Prop       | Tipo           | Padrão      | Descrição |
-|------------|----------------|-------------|-----------|
-| `variant`  | `string`       | `'primary'` | Variante do Bootstrap: `primary`, `secondary`, `success`, `danger`, `outline-primary`, `link` etc. Gera a classe `btn-{variant}`. |
-| `size`     | `string\|null` | `null`      | Tamanho: `sm` ou `lg`. Gera a classe `btn-{size}`. |
-| `href`     | `string\|null` | `null`      | Quando informado, renderiza um `<a>` com `role="button"` no lugar do `<button>`. |
-| `pill`     | `bool`         | `false`     | Cantos totalmente arredondados (`rounded-pill`). |
-| `block`    | `bool`         | `false`     | Largura total (`w-100`). |
-| `loading`  | `bool`         | `false`     | Mostra um spinner antes do texto, desabilita o botão e adiciona `aria-busy="true"`. |
-| `disabled` | `bool`         | `false`     | Desabilita o botão. Também funciona em links (veja abaixo). |
-
-Qualquer outro atributo (`id`, `wire:click`, `form`, `target`...) é repassado para o elemento. Classes extras são **somadas** às do componente, e os demais atributos **substituem** os padrões. Por exemplo, `type="submit"` substitui o `type="button"`.
-
-> **Booleanos:** escreva a prop sem valor (`<x-ginga::button pill>`) ou passe uma expressão PHP com dois-pontos (`:loading="$salvando"`). Evite `loading="false"`: sem os dois-pontos, o valor chega como a string `"false"`, que é verdadeira.
-
-### Slots
-
-| Slot        | Descrição |
-|-------------|-----------|
-| (padrão)    | Texto do botão. |
-| `iconLeft`  | Ícone antes do texto. Enquanto `loading` estiver ativo, o spinner ocupa o lugar dele. |
-| `iconRight` | Ícone depois do texto. |
-
-### Exemplos
-
-**Variante e tamanho**
-
-```blade
-<x-ginga::button variant="danger" size="lg">Excluir</x-ginga::button>
-<x-ginga::button variant="outline-secondary" type="submit">Enviar</x-ginga::button>
-```
-
-**Link com aparência de botão**
-
-```blade
-<x-ginga::button href="{{ route('clientes.create') }}">Novo cliente</x-ginga::button>
-```
-
-```html
-<a class="btn btn-primary" href="..." role="button">
-    Novo cliente
-</a>
-```
-
-O `<a>` não recebe o atributo `type`.
-
-**Pill e largura total**
-
-```blade
-<x-ginga::button pill>Assinar</x-ginga::button>
-<x-ginga::button block>Continuar</x-ginga::button>
-```
-
-**Carregando**
-
-```blade
-<x-ginga::button type="submit" :loading="$salvando">Salvar</x-ginga::button>
-```
-
-```html
-<button class="btn btn-primary" type="submit" disabled="disabled" aria-busy="true">
-    <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
-    <span class="visually-hidden" role="status">Carregando...</span>
-    Salvar
-</button>
-```
-
-O texto "Carregando..." fica visível apenas para leitores de tela. Em um link, `loading` aplica o mesmo tratamento de `disabled`.
-
-**Desabilitado**
-
-```blade
-<x-ginga::button disabled>Salvar</x-ginga::button>
-<x-ginga::button href="/relatorio" disabled>Baixar relatório</x-ginga::button>
-```
-
-Links não aceitam o atributo `disabled`. No `<a>`, o componente adiciona a classe `disabled` (que bloqueia o clique com `pointer-events: none`), `aria-disabled="true"` para leitores de tela e `tabindex="-1"` para tirar o link da navegação por teclado:
-
-```html
-<a class="btn btn-primary disabled" href="/relatorio" role="button" aria-disabled="true" tabindex="-1">
-    Baixar relatório
-</a>
-```
-
-**Ícones**
-
-```blade
-<x-ginga::button>
-    <x-slot:iconLeft>
-        <i class="bi bi-plus-lg" aria-hidden="true"></i>
-    </x-slot:iconLeft>
-    Adicionar
-</x-ginga::button>
-
-<x-ginga::button href="/passo-2" variant="outline-primary">
-    Próximo
-    <x-slot:iconRight>
-        <i class="bi bi-arrow-right" aria-hidden="true"></i>
-    </x-slot:iconRight>
-</x-ginga::button>
-```
-
-Você pode usar qualquer biblioteca de ícones ou SVG inline. Para ícones decorativos, use `aria-hidden="true"`. Em SVG, `fill="currentColor"` faz o ícone acompanhar a cor do botão.
-
-### Cores
-
-O componente usa apenas classes do Bootstrap. As cores vêm do tema do Ginga, carregado pelo [`<x-ginga::styles />`](#styles-e-scripts).
-
-Para servir o tema como arquivo estático (por exemplo, num CDN), copie para `public/` e inclua **depois** do CSS do Bootstrap:
-
-```bash
-php artisan vendor:publish --tag=ginga-assets
-```
-
-```html
-<link rel="stylesheet" href="{{ asset('vendor/ginga/ginga-theme.css') }}">
-```
-
-A cópia não se atualiza sozinha: rode o comando de novo com `--force` a cada atualização do pacote.
 
 ## Alert
 
@@ -479,6 +351,201 @@ Para as mensagens da sessão, use o [`<x-ginga::flash />`](#flash), que monta os
 ```
 
 > **Erros que somem:** quem lê devagar ou usa leitor de tela pode não conseguir ler a mensagem a tempo. Para erros, use um `delay` maior ou `:autohide="false"`. Para erros de validação, mantenha também a indicação no próprio campo (`is-invalid` e `invalid-feedback`).
+
+## Modal
+
+```blade
+<x-ginga::button data-bs-toggle="modal" data-bs-target="#novo-contato">Novo contato</x-ginga::button>
+
+<x-ginga::modal id="novo-contato" title="Novo contato" centered>
+    <p>Conteúdo do modal.</p>
+
+    <x-slot:footer>
+        <x-ginga::button variant="link" data-bs-dismiss="modal">Cancelar</x-ginga::button>
+        <x-ginga::button type="submit" form="form-contato">Salvar</x-ginga::button>
+    </x-slot:footer>
+</x-ginga::modal>
+```
+
+| Prop         | Tipo           | Padrão  | Descrição |
+|--------------|----------------|---------|-----------|
+| `id`         | `string`       | —       | Obrigatório. Usado no `data-bs-target` do botão que abre o modal. |
+| `title`      | `string\|null` | `null`  | Título, ligado ao modal por `aria-labelledby`, com o botão de fechar. |
+| `size`       | `string\|null` | `null`  | `sm`, `lg` ou `xl`. |
+| `centered`   | `bool`         | `false` | Centraliza na vertical. |
+| `scrollable` | `bool`         | `false` | Rola só o corpo quando o conteúdo é grande. |
+| `static`     | `bool`         | `false` | Não fecha ao clicar fora nem com Esc. Útil para formulários que não podem ser perdidos por engano. |
+
+Depende do JavaScript do Bootstrap.
+
+## Button
+
+Botão do Bootstrap 5.3 com suporte a links, estado de carregamento e ícones.
+
+```blade
+<x-ginga::button>Salvar</x-ginga::button>
+```
+
+Gera:
+
+```html
+<button class="btn btn-primary" type="button">
+    Salvar
+</button>
+```
+
+### Props
+
+| Prop       | Tipo           | Padrão      | Descrição |
+|------------|----------------|-------------|-----------|
+| `variant`  | `string`       | `'primary'` | Variante do Bootstrap: `primary`, `secondary`, `success`, `danger`, `outline-primary`, `link` etc. Gera a classe `btn-{variant}`. |
+| `size`     | `string\|null` | `null`      | Tamanho: `sm` ou `lg`. Gera a classe `btn-{size}`. |
+| `href`     | `string\|null` | `null`      | Quando informado, renderiza um `<a>` com `role="button"` no lugar do `<button>`. |
+| `pill`     | `bool`         | `false`     | Cantos totalmente arredondados (`rounded-pill`). |
+| `block`    | `bool`         | `false`     | Largura total (`w-100`). |
+| `loading`  | `bool`         | `false`     | Mostra um spinner antes do texto, desabilita o botão e adiciona `aria-busy="true"`. |
+| `disabled` | `bool`         | `false`     | Desabilita o botão. Também funciona em links (veja abaixo). |
+
+Qualquer outro atributo (`id`, `wire:click`, `form`, `target`...) é repassado para o elemento. Classes extras são **somadas** às do componente, e os demais atributos **substituem** os padrões. Por exemplo, `type="submit"` substitui o `type="button"`.
+
+> **Booleanos:** escreva a prop sem valor (`<x-ginga::button pill>`) ou passe uma expressão PHP com dois-pontos (`:loading="$salvando"`). Evite `loading="false"`: sem os dois-pontos, o valor chega como a string `"false"`, que é verdadeira.
+
+### Slots
+
+| Slot        | Descrição |
+|-------------|-----------|
+| (padrão)    | Texto do botão. |
+| `iconLeft`  | Ícone antes do texto. Enquanto `loading` estiver ativo, o spinner ocupa o lugar dele. |
+| `iconRight` | Ícone depois do texto. |
+
+### Exemplos
+
+**Variante e tamanho**
+
+```blade
+<x-ginga::button variant="danger" size="lg">Excluir</x-ginga::button>
+<x-ginga::button variant="outline-secondary" type="submit">Enviar</x-ginga::button>
+```
+
+**Link com aparência de botão**
+
+```blade
+<x-ginga::button href="{{ route('clientes.create') }}">Novo cliente</x-ginga::button>
+```
+
+```html
+<a class="btn btn-primary" href="..." role="button">
+    Novo cliente
+</a>
+```
+
+O `<a>` não recebe o atributo `type`.
+
+**Pill e largura total**
+
+```blade
+<x-ginga::button pill>Assinar</x-ginga::button>
+<x-ginga::button block>Continuar</x-ginga::button>
+```
+
+**Carregando**
+
+```blade
+<x-ginga::button type="submit" :loading="$salvando">Salvar</x-ginga::button>
+```
+
+```html
+<button class="btn btn-primary" type="submit" disabled="disabled" aria-busy="true">
+    <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+    <span class="visually-hidden" role="status">Carregando...</span>
+    Salvar
+</button>
+```
+
+O texto "Carregando..." fica visível apenas para leitores de tela. Em um link, `loading` aplica o mesmo tratamento de `disabled`.
+
+**Desabilitado**
+
+```blade
+<x-ginga::button disabled>Salvar</x-ginga::button>
+<x-ginga::button href="/relatorio" disabled>Baixar relatório</x-ginga::button>
+```
+
+Links não aceitam o atributo `disabled`. No `<a>`, o componente adiciona a classe `disabled` (que bloqueia o clique com `pointer-events: none`), `aria-disabled="true"` para leitores de tela e `tabindex="-1"` para tirar o link da navegação por teclado:
+
+```html
+<a class="btn btn-primary disabled" href="/relatorio" role="button" aria-disabled="true" tabindex="-1">
+    Baixar relatório
+</a>
+```
+
+**Ícones**
+
+```blade
+<x-ginga::button>
+    <x-slot:iconLeft>
+        <i class="bi bi-plus-lg" aria-hidden="true"></i>
+    </x-slot:iconLeft>
+    Adicionar
+</x-ginga::button>
+
+<x-ginga::button href="/passo-2" variant="outline-primary">
+    Próximo
+    <x-slot:iconRight>
+        <i class="bi bi-arrow-right" aria-hidden="true"></i>
+    </x-slot:iconRight>
+</x-ginga::button>
+```
+
+Você pode usar qualquer biblioteca de ícones ou SVG inline. Para ícones decorativos, use `aria-hidden="true"`. Em SVG, `fill="currentColor"` faz o ícone acompanhar a cor do botão.
+
+### Cores
+
+O componente usa apenas classes do Bootstrap. As cores vêm do tema do Ginga, carregado pelo [`<x-ginga::styles />`](#styles-e-scripts).
+
+Para servir o tema como arquivo estático (por exemplo, num CDN), copie para `public/` e inclua **depois** do CSS do Bootstrap:
+
+```bash
+php artisan vendor:publish --tag=ginga-assets
+```
+
+```html
+<link rel="stylesheet" href="{{ asset('vendor/ginga/ginga-theme.css') }}">
+```
+
+A cópia não se atualiza sozinha: rode o comando de novo com `--force` a cada atualização do pacote.
+
+## Confirmação de exclusão
+
+Um botão em cada linha é tudo o que precisa:
+
+```blade
+<x-ginga::delete-button :action="route('clientes.destroy', $cliente)" :item="$cliente->nome" />
+```
+
+Ao clicar, um modal pergunta "Tem certeza que deseja excluir **Maria Silva**? Esta ação não pode ser desfeita." Ao confirmar, ele envia um `DELETE` (com o token CSRF) para a URL de `action`. O botão de confirmar é desabilitado no envio, para não excluir duas vezes, e ao fechar o modal o foco volta para o botão que o abriu.
+
+Sem o JavaScript do Bootstrap, o botão usa a confirmação nativa do navegador e continua funcionando.
+
+Para trocar os textos do modal, coloque um `confirm-delete` na página. Ele substitui o modal padrão:
+
+```blade
+<x-ginga::confirm-delete title="Excluir cliente?" confirm="Sim, excluir" />
+```
+
+**`delete-button`:**
+
+| Prop      | Tipo           | Padrão                       | Descrição |
+|-----------|----------------|------------------------------|-----------|
+| `action`  | `string`       | —                            | URL que recebe o `DELETE`. |
+| `item`    | `string\|null` | `null`                       | Nome mostrado na confirmação. Também é lido pelo leitor de tela ("Excluir Maria Silva"), já que uma tabela tem vários botões "Excluir". |
+| `variant` | `string`       | `'outline-danger'`           | Variante do botão. |
+| `size`    | `string\|null` | `'sm'`                       | Tamanho do botão. |
+| `modal`   | `string`       | `'ginga-confirmar-exclusao'` | `id` de um `confirm-delete` personalizado, quando há mais de um na página. |
+
+O texto do botão é "Excluir". Para trocar ou usar um ícone, passe o conteúdo no slot.
+
+**`confirm-delete`:** aceita `title`, `confirm` (texto do botão, padrão `Excluir`), `cancel` (padrão `Cancelar`) e `id`. Para trocar a pergunta, passe o texto no slot.
 
 ## Input e Select
 
@@ -950,63 +1017,20 @@ Paginação em português para qualquer paginator do Laravel:
 
 Mostra "Mostrando 1 a 10 de 57 resultados" (desligue com `:summary="false"`) e os links "Anterior", "1 2 3 … 6" e "Próxima". A página atual tem `aria-current="page"`, e os números são lidos como "Página 2". Funciona com `paginate()` e `simplePaginate()`. Com o `simplePaginate()`, aparecem só "Anterior" e "Próxima".
 
-## Modal
+## Badge
 
 ```blade
-<x-ginga::button data-bs-toggle="modal" data-bs-target="#novo-contato">Novo contato</x-ginga::button>
-
-<x-ginga::modal id="novo-contato" title="Novo contato" centered>
-    <p>Conteúdo do modal.</p>
-
-    <x-slot:footer>
-        <x-ginga::button variant="link" data-bs-dismiss="modal">Cancelar</x-ginga::button>
-        <x-ginga::button type="submit" form="form-contato">Salvar</x-ginga::button>
-    </x-slot:footer>
-</x-ginga::modal>
+<x-ginga::badge variant="success" pill>Ativo</x-ginga::badge>
+<x-ginga::badge variant="danger" subtle>Inativo</x-ginga::badge>
 ```
 
-| Prop         | Tipo           | Padrão  | Descrição |
-|--------------|----------------|---------|-----------|
-| `id`         | `string`       | —       | Obrigatório. Usado no `data-bs-target` do botão que abre o modal. |
-| `title`      | `string\|null` | `null`  | Título, ligado ao modal por `aria-labelledby`, com o botão de fechar. |
-| `size`       | `string\|null` | `null`  | `sm`, `lg` ou `xl`. |
-| `centered`   | `bool`         | `false` | Centraliza na vertical. |
-| `scrollable` | `bool`         | `false` | Rola só o corpo quando o conteúdo é grande. |
-| `static`     | `bool`         | `false` | Não fecha ao clicar fora nem com Esc. Útil para formulários que não podem ser perdidos por engano. |
+| Prop      | Tipo     | Padrão      | Descrição |
+|-----------|----------|-------------|-----------|
+| `variant` | `string` | `'primary'` | Variante do Bootstrap. |
+| `subtle`  | `bool`   | `false`     | Versão suave, com fundo claro e borda, nas mesmas cores do alert. |
+| `pill`    | `bool`   | `false`     | Cantos arredondados. |
 
-Depende do JavaScript do Bootstrap.
-
-## Confirmação de exclusão
-
-Um botão em cada linha é tudo o que precisa:
-
-```blade
-<x-ginga::delete-button :action="route('clientes.destroy', $cliente)" :item="$cliente->nome" />
-```
-
-Ao clicar, um modal pergunta "Tem certeza que deseja excluir **Maria Silva**? Esta ação não pode ser desfeita." Ao confirmar, ele envia um `DELETE` (com o token CSRF) para a URL de `action`. O botão de confirmar é desabilitado no envio, para não excluir duas vezes, e ao fechar o modal o foco volta para o botão que o abriu.
-
-Sem o JavaScript do Bootstrap, o botão usa a confirmação nativa do navegador e continua funcionando.
-
-Para trocar os textos do modal, coloque um `confirm-delete` na página. Ele substitui o modal padrão:
-
-```blade
-<x-ginga::confirm-delete title="Excluir cliente?" confirm="Sim, excluir" />
-```
-
-**`delete-button`:**
-
-| Prop      | Tipo           | Padrão                       | Descrição |
-|-----------|----------------|------------------------------|-----------|
-| `action`  | `string`       | —                            | URL que recebe o `DELETE`. |
-| `item`    | `string\|null` | `null`                       | Nome mostrado na confirmação. Também é lido pelo leitor de tela ("Excluir Maria Silva"), já que uma tabela tem vários botões "Excluir". |
-| `variant` | `string`       | `'outline-danger'`           | Variante do botão. |
-| `size`    | `string\|null` | `'sm'`                       | Tamanho do botão. |
-| `modal`   | `string`       | `'ginga-confirmar-exclusao'` | `id` de um `confirm-delete` personalizado, quando há mais de um na página. |
-
-O texto do botão é "Excluir". Para trocar ou usar um ícone, passe o conteúdo no slot.
-
-**`confirm-delete`:** aceita `title`, `confirm` (texto do botão, padrão `Excluir`), `cancel` (padrão `Cancelar`) e `id`. Para trocar a pergunta, passe o texto no slot.
+Não use só a cor para passar a informação: o texto do badge ("Ativo", "Inativo") deve fazer sentido sozinho.
 
 ## Card
 
@@ -1029,21 +1053,6 @@ O texto do botão é "Excluir". Para trocar ou usar um ícone, passe o conteúdo
 | `flush` | `bool`         | `false` | Conteúdo sem o `card-body`, encostado nas bordas. Use com `table` e `list-group`. |
 
 Slots: `actions` (botões à direita do título), `header` (substitui o cabeçalho inteiro) e `footer`.
-
-## Badge
-
-```blade
-<x-ginga::badge variant="success" pill>Ativo</x-ginga::badge>
-<x-ginga::badge variant="danger" subtle>Inativo</x-ginga::badge>
-```
-
-| Prop      | Tipo     | Padrão      | Descrição |
-|-----------|----------|-------------|-----------|
-| `variant` | `string` | `'primary'` | Variante do Bootstrap. |
-| `subtle`  | `bool`   | `false`     | Versão suave, com fundo claro e borda, nas mesmas cores do alert. |
-| `pill`    | `bool`   | `false`     | Cantos arredondados. |
-
-Não use só a cor para passar a informação: o texto do badge ("Ativo", "Inativo") deve fazer sentido sozinho.
 
 ## Breadcrumb
 
@@ -1070,7 +1079,10 @@ O que os testes cobrem:
 
 - **`tests/Unit`:** validação de CPF, CNPJ (inclusive o alfanumérico), CEP, telefone e UF; máscaras; opções e valores dos campos.
 - **`tests/Feature`:** o HTML de cada componente, o `old()` e os erros depois de um envio, a `Tabela` com um banco SQLite em memória, a rota do tema e as diretivas.
-- **Galeria:** a página `/_ginga` renderiza com todos os exemplos.
 - **Compilação:** todo componente e partial precisa virar PHP válido. Esse teste pega erros que só aparecem ao abrir a página, como uma tag `<x-...>` escrita dentro de um comentário JavaScript.
 
 O JavaScript dos componentes (máscaras, datatable, multiselect, exclusão) ainda não tem testes automatizados.
+
+## Licença
+
+[MIT](LICENSE).

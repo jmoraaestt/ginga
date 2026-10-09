@@ -8,11 +8,3 @@ Route::get('_ginga/tema.css', fn () => response()->file(dirname(__DIR__) . '/res
     'Content-Type' => 'text/css; charset=UTF-8',
     'Cache-Control' => 'public, max-age=31536000, immutable',
 ]))->name('ginga.tema');
-
-// Galeria com todos os componentes no design do Ginga. Só em ambiente local,
-// ou em qualquer ambiente com config('ginga.galeria') = true
-if (config('ginga.galeria', app()->isLocal())) {
-    Route::middleware('web')
-        ->get('_ginga', fn () => view('ginga::galeria'))
-        ->name('ginga.galeria');
-}

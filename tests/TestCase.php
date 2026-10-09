@@ -14,8 +14,6 @@ abstract class TestCase extends BaseTestCase
 
     protected function defineEnvironment($app): void
     {
-        // A galeria só é registrada em ambiente local; nos testes, liga pela config
-        $app['config']->set('ginga.galeria', true);
         $app['config']->set('app.key', 'base64:' . base64_encode(str_repeat('a', 32)));
     }
 
