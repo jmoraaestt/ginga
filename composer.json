@@ -35,5 +35,11 @@
         "allow-plugins": {
             "pestphp/pest-plugin": true
         }
+    },
+    "repositories": {
+        "ginga": {
+            "type": "path",
+            "url": "../"
+        }
     }
 }
