@@ -1,0 +1,67 @@
+name: Documentação
+
+# Gera o site estático da pasta docs/ e publica no GitHub Pages.
+# Na primeira vez: Settings > Pages > Source: GitHub Actions.
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'docs/**'
+      - 'resources/**'
+      - 'src/**'
+      - 'routes/**'
+      - '.github/workflows/docs.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: docs
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          # O composer.lock do docs/ tem Symfony 8, que exige PHP 8.4.1 ou mais novo
+          php-version: '8.4'
+          extensions: sqlite3, pdo_sqlite
+          coverage: none
+
+      - name: Instalar dependências
+        run: composer install --no-interaction --prefer-dist --no-progress
+
+      - name: Configurar o Laravel
+        run: |
+          cp .env.example .env
+          php artisan key:generate
+
+      - id: pages
+        uses: actions/configure-pages@v5
+
+      - name: Gerar o site
+        run: php artisan docs:build --url="${{ steps.pages.outputs.base_url }}"
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs/dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - id: deploy
+        uses: actions/deploy-pages@v4

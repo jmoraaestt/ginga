@@ -1,0 +1,6 @@
+# Fora do pacote baixado pelo Composer: só interessam a quem desenvolve o Ginga
+/.github export-ignore
+/docs export-ignore
+/preview export-ignore
+/tests export-ignore
+/phpunit.xml export-ignore
